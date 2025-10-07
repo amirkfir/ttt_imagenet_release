@@ -135,4 +135,4 @@ for epoch in range(args.start_epoch, args.epochs+1):
 				'optimizer': optimizer.state_dict(), 'net': net.state_dict(), 'head': head.state_dict()}
 	torch.save(state, args.outf + '/ckpt.pth')
 
-	wandb.finish()
+wandb.finish()
