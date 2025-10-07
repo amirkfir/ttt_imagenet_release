@@ -8,9 +8,11 @@ import torch.optim
 from utils.misc import *
 from utils.test_helpers import test
 from utils.train_helpers import *
+import wandb
+
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataroot', default='/data/datasets/imagenet/')
+parser.add_argument('--dataroot', default='../imagenet-100/')
 parser.add_argument('--shared', default=None)
 ########################################################################
 parser.add_argument('--depth', default=18, type=int)
@@ -25,6 +27,9 @@ parser.add_argument('--lr', default=0.1, type=float)
 ########################################################################
 parser.add_argument('--resume', default=None)
 parser.add_argument('--outf', default='.')
+parser.add_argument('--rotation', default=True,type=bool)
+
+
 
 args = parser.parse_args()
 my_makedir(args.outf)
@@ -37,6 +42,13 @@ _, trloader = prepare_train_data(args)
 parameters = list(net.parameters())+list(head.parameters())
 optimizer = torch.optim.SGD(parameters, lr=args.lr, momentum=0.9, weight_decay=1e-4)
 criterion = nn.CrossEntropyLoss(reduction='none').cuda()
+
+wandb.init(
+    project="Resnet_TTT",      # replace with your project name
+    name=f"resnet18_layer{args.shared}_gn{args.group_norm}" if args.shared else f"resnet18_gn{args.group_norm}",
+    config=vars(args)
+)
+
 
 def train(trloader, epoch):
 	net.train()
@@ -62,6 +74,14 @@ def train(trloader, epoch):
 		_, predicted = outputs_cls.max(1)
 		acc1 = predicted.eq(labels_cls).sum().item() / len(labels_cls)
 		top1.update(acc1, len(labels_cls))
+
+		if i % args.print_freq == 0:
+			progress.print(i)
+			wandb.log({
+				"train/loss": losses.avg,
+				"train/acc@1": top1.avg,
+				"epoch": epoch
+			})
 
 		if args.shared is not None:
 			inputs_ssh, labels_ssh = dl[2].cuda(), dl[3].cuda()
@@ -100,6 +120,12 @@ for epoch in range(args.start_epoch, args.epochs+1):
 	else:
 		err_ssh = 0
 
+	wandb.log({
+		"val/err_cls": err_cls,
+		"val/err_ssh": err_ssh,
+		"epoch": epoch
+	})
+
 	all_err_cls.append(err_cls)
 	all_err_ssh.append(err_ssh)
 	torch.save((all_err_cls, all_err_ssh), args.outf + '/loss.pth')
@@ -108,3 +134,5 @@ for epoch in range(args.start_epoch, args.epochs+1):
 	state = {'args': args, 'err_cls': err_cls, 'err_ssh': err_ssh, 
 				'optimizer': optimizer.state_dict(), 'net': net.state_dict(), 'head': head.state_dict()}
 	torch.save(state, args.outf + '/ckpt.pth')
+
+	wandb.finish()
