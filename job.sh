@@ -28,5 +28,8 @@ BSUB -N
 BSUB -o Output_%J.out
 BSUB -e Output_%J.err
 
+source /work3/s242954/ttt_env/bin/activate
+
+
 # here follow the commands you want to execute with input.in as the input file
 python /work3/s242954/Resnet_TTT_IoY/main.py --shared layer3 --group_norm 32 --workers 16 --outf results/resnet18_layer3_gn
