@@ -25,8 +25,8 @@
 #BSUB -N
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o Output_%J.out
-#BSUB -e Output_%J.err
+#BSUB -o outputs/Output_%J.out
+#BSUB -e outputs/Output_%J.err
 
 source /work3/s242954/ttt_imagenet_release/ttt_new/bin/activate
 
