@@ -70,5 +70,5 @@ tqdm>=4.66,<5.0
 toolz
 cachetools>=6.0,<6.2
 async-timeout>=5.0,<5.2
-shortuuid>=2.2.0,<2.3
-tzdata>=2025.1,<2026.0
+shortuuid
+tzdata

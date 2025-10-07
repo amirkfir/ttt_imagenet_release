@@ -28,7 +28,7 @@
 #BSUB -o Output_%J.out
 #BSUB -e Output_%J.err
 
-source /work3/s242954/ttt_imagenet_release/ttt_env/bin/activate
+source /work3/s242954/ttt_imagenet_release/ttt_new/bin/activate
 
 
 # here follow the commands you want to execute with input.in as the input file
