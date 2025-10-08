@@ -75,6 +75,14 @@ def train(trloader, epoch):
 		acc1 = predicted.eq(labels_cls).sum().item() / len(labels_cls)
 		top1.update(acc1, len(labels_cls))
 
+
+
+		if args.shared is not None:
+			inputs_ssh, labels_ssh = dl[2].cuda(), dl[3].cuda()
+			outputs_ssh = ssh(inputs_ssh)
+			loss_ssh = criterion(outputs_ssh, labels_ssh)
+			loss += loss_ssh.mean()
+
 		if i % args.print_freq == 0:
 			progress.print(i)
 			wandb.log({
@@ -82,12 +90,6 @@ def train(trloader, epoch):
 				"train/acc@1": top1.avg,
 				"epoch": epoch
 			})
-
-		if args.shared is not None:
-			inputs_ssh, labels_ssh = dl[2].cuda(), dl[3].cuda()
-			outputs_ssh = ssh(inputs_ssh)
-			loss_ssh = criterion(outputs_ssh, labels_ssh)
-			loss += loss_ssh.mean()
 
 		loss.backward()
 		optimizer.step()
