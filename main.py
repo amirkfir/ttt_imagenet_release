@@ -83,14 +83,6 @@ def train(trloader, epoch):
 			loss_ssh = criterion(outputs_ssh, labels_ssh)
 			loss += loss_ssh.mean()
 
-		if i % args.print_freq == 0:
-			progress.print(i)
-			wandb.log({
-				"train/loss": losses.avg,
-				"train/acc@1": top1.avg,
-				"epoch": epoch
-			})
-
 		loss.backward()
 		optimizer.step()
 
@@ -98,6 +90,11 @@ def train(trloader, epoch):
 		end = time.time()
 		if i % args.print_freq == 0:
 			progress.print(i)
+			wandb.log({
+				"train/loss": losses.avg,
+				"train/acc@1": top1.avg,
+				"epoch": epoch
+			})
 
 all_err_cls = []
 all_err_ssh = []
