@@ -18,6 +18,7 @@ parser.add_argument('--shared', default=None)
 parser.add_argument('--depth', default=18, type=int)
 parser.add_argument('--group_norm', default=0, type=int)
 parser.add_argument('--batch_size', default=256, type=int)
+parser.add_argument('--num_classes', default=1000, type=int)
 parser.add_argument('--workers', default=8, type=int)
 ########################################################################
 parser.add_argument('--epochs', default=90, type=int)

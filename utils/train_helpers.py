@@ -51,6 +51,10 @@ def build_model(args):
 		net = models.resnet18(norm_layer=norm_layer).cuda()
 		expansion = 1
 
+	if args.num_classes != 1000:
+		num_features = net.fc.in_features
+		net.fc = nn.Linear(num_features, args.num_classes)  # your new output size
+
 	planes = 512
 	if args.shared == 'none':
 		args.shared = None
