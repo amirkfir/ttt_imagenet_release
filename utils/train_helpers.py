@@ -8,6 +8,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
 import torch.utils.data
+import models.customResNet as customResNet
 
 from utils.rotation import RotateImageFolder
 from models.SSHead import *
@@ -50,8 +51,11 @@ def build_model(args):
 	elif args.depth == 18:
 		net = models.resnet18(norm_layer=norm_layer).cuda()
 		expansion = 1
+	elif args.depth == -1:
+		net = customResNet.ResNet18().cuda()
+		expansion = 1
 
-	if args.num_classes != 1000:
+	if args.num_classes != 1000 and args.depth != -1:
 		num_features = net.fc.in_features
 		net.fc = nn.Linear(num_features, args.num_classes)  # your new output size
 
@@ -63,8 +67,12 @@ def build_model(args):
 		head = nn.Linear(expansion * planes, 4)
 	elif args.shared == 'layer3':
 		ext = extractor_from_layer3(net)
-		head = copy.deepcopy([net.layer4, net.avgpool, 
-								ViewFlatten(), nn.Linear(expansion * planes * width, 4)])
+		if args.depth != -1:
+			head = copy.deepcopy([net.layer4, net.avgpool,
+									ViewFlatten(), nn.Linear(expansion * planes * width, 4)])
+		else:
+			head = copy.deepcopy([net.avgpool,
+									ViewFlatten(), nn.Linear(expansion * 256 * width, 4)])
 		head = nn.Sequential(*head)
 	elif args.shared == 'layer2':
 		ext = extractor_from_layer2(net)
@@ -73,8 +81,9 @@ def build_model(args):
 		head = nn.Sequential(*head)
 
 	ssh = ExtractorHead(ext, head).cuda()
-	net = torch.nn.DataParallel(net)
-	ssh = torch.nn.DataParallel(ssh)
+	if args.data_parallel:
+		net = torch.nn.DataParallel(net)
+		ssh = torch.nn.DataParallel(ssh)
 	return net, ext, head, ssh
 
 class ImagePathFolder(datasets.ImageFolder):
